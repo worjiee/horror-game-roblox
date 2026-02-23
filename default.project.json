@@ -1,0 +1,264 @@
+{
+  "name": "horror",
+  "tree": {
+    "$className": "DataModel",
+
+    "ReplicatedStorage": {
+      "Shared": {
+        "$path": "src/shared"
+      }
+    },
+
+    "ServerScriptService": {
+      "Server": {
+        "$path": "src/server"
+      }
+    },
+
+    "StarterPlayer": {
+      "$properties": {
+        "CameraMode": "LockFirstPerson"
+      },
+      "StarterPlayerScripts": {
+        "Client": {
+          "$path": "src/client"
+        }
+      }
+    },
+
+    "Workspace": {
+      "$properties": {
+        "FilteringEnabled": true
+      },
+      "Baseplate": {
+        "$className": "Part",
+        "$properties": {
+          "Anchored": true,
+          "Color": [
+            0.38823,
+            0.37254,
+            0.38823
+          ],
+          "Locked": true,
+          "Position": [
+            0,
+            -10,
+            0
+          ],
+          "Size": [
+            512,
+            20,
+            512
+          ]
+        }
+      },
+      "Facility": {
+        "$className": "Model",
+        "Generator": {
+          "$className": "Part",
+          "$properties": {
+            "Anchored": true,
+            "Color": [
+              0.2,
+              0.2,
+              0.2
+            ],
+            "Position": [
+              -18,
+              4,
+              10
+            ],
+            "Size": [
+              6,
+              4,
+              3
+            ]
+          }
+        },
+        "BackupGenerator": {
+          "$className": "Part",
+          "$properties": {
+            "Anchored": true,
+            "Color": [
+              0.18,
+              0.18,
+              0.18
+            ],
+            "Position": [
+              -24,
+              4,
+              2
+            ],
+            "Size": [
+              6,
+              4,
+              3
+            ]
+          }
+        },
+        "CameraTerminal": {
+          "$className": "Part",
+          "$properties": {
+            "Anchored": true,
+            "Color": [
+              0.15,
+              0.15,
+              0.2
+            ],
+            "Position": [
+              12,
+              3,
+              -6
+            ],
+            "Size": [
+              5,
+              3,
+              2
+            ]
+          }
+        },
+        "CameraA": {
+          "$className": "Part",
+          "$properties": {
+            "Anchored": true,
+            "CanCollide": false,
+            "Transparency": 1,
+            "Position": [
+              0,
+              8,
+              -24
+            ],
+            "Size": [
+              1,
+              1,
+              1
+            ]
+          }
+        },
+        "CameraB": {
+          "$className": "Part",
+          "$properties": {
+            "Anchored": true,
+            "CanCollide": false,
+            "Transparency": 1,
+            "Position": [
+              -26,
+              8,
+              14
+            ],
+            "Size": [
+              1,
+              1,
+              1
+            ]
+          }
+        },
+        "Locker": {
+          "$className": "Part",
+          "$properties": {
+            "Anchored": true,
+            "Color": [
+              0.08,
+              0.08,
+              0.1
+            ],
+            "Position": [
+              -6,
+              4,
+              -12
+            ],
+            "Size": [
+              3,
+              7,
+              3
+            ]
+          }
+        },
+        "Desk": {
+          "$className": "Part",
+          "$properties": {
+            "Anchored": true,
+            "Color": [
+              0.1,
+              0.08,
+              0.07
+            ],
+            "Position": [
+              4,
+              2,
+              8
+            ],
+            "Size": [
+              6,
+              2,
+              4
+            ]
+          }
+        },
+        "Note": {
+          "$className": "Part",
+          "$properties": {
+            "Anchored": true,
+            "Color": [
+              0.9,
+              0.9,
+              0.85
+            ],
+            "Position": [
+              4,
+              3.3,
+              8
+            ],
+            "Size": [
+              2,
+              0.1,
+              1
+            ]
+          }
+        }
+      }
+    },
+    "Lighting": {
+      "$properties": {
+        "Ambient": [
+          0,
+          0,
+          0
+        ],
+        "Brightness": 1,
+        "FogColor": [
+          0.05,
+          0.05,
+          0.06
+        ],
+        "FogEnd": 90,
+        "GlobalShadows": true,
+        "Outlines": false,
+        "Technology": "Voxel"
+      },
+      "Atmosphere": {
+        "$className": "Atmosphere",
+        "$properties": {
+          "Color": [
+            0.6,
+            0.6,
+            0.7
+          ],
+          "Decay": [
+            0.2,
+            0.2,
+            0.25
+          ],
+          "Density": 0.4,
+          "Haze": 1,
+          "Offset": -0.2
+        }
+      }
+    },
+    "SoundService": {
+      "$properties": {
+        "RespectFilteringEnabled": true
+      }
+    }
+  }
+}

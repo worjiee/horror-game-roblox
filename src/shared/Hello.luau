@@ -1,0 +1,1 @@
+-- Deprecated placeholder module. Use GameConfig instead.
