@@ -45,6 +45,16 @@ GameConfig.VignetteMaxAlpha = 0.6
 
 GameConfig.CameraViewMusicId = ""
 
+GameConfig.GeneratorMaxFuel = 100
+GameConfig.GeneratorDrainSeconds = 120
+GameConfig.GeneratorUseDistance = 8
+
+GameConfig.GasCanMinFuel = 20
+GameConfig.GasCanMaxFuel = 60
+GameConfig.GasCanSpawnCount = 4
+GameConfig.GasCanToolName = "Gas Can"
+GameConfig.GasCanSpawnName = "GasCanSpawn"
+
 GameConfig.CameraNames = {
 	"CameraA",
 	"CameraB",

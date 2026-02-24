@@ -167,7 +167,7 @@ function CameraSystem.new(deps)
 	local function refreshCameraParts()
 		cameraParts = {}
 		cameraByName = {}
-		local facility = Workspace:FindFirstChild("Facility")
+		local facility = Workspace:FindFirstChild("Game Map")
 		if not facility then
 			return
 		end

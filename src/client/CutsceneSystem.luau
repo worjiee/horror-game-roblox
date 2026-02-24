@@ -47,17 +47,11 @@ function CutsceneSystem.new(ui, lighting, player, services)
 			if not root then
 				return nil
 			end
-			for _, name in ipairs({ "Rig" }) do
-				local found = root:FindFirstChild(name, true)
-				if found then
-					return found
-				end
-			end
-			return nil
+			return root:FindFirstChild("Rig", true)
 		end
 
-		local facility = Workspace:FindFirstChild("Facility")
-		return findRig(facility) or findRig(Workspace)
+		local mapModel = Workspace:FindFirstChild("Game Map") or Workspace:FindFirstChild("Facility")
+		return findRig(mapModel) or findRig(Workspace)
 	end
 
 	local function resolveDispatchEmitter()
@@ -102,6 +96,7 @@ function CutsceneSystem.new(ui, lighting, player, services)
 		return nil
 	end
 
+
 	local function setupRigBackdrop()
 		local rig = resolveDispatchRigModel()
 		if not rig then
@@ -113,85 +108,21 @@ function CutsceneSystem.new(ui, lighting, player, services)
 			return
 		end
 
-		if not targetPart:FindFirstChild("RigScaryBackdrop") then
-			local billboard = Instance.new("BillboardGui")
-			billboard.Name = "RigScaryBackdrop"
-			billboard.Size = UDim2.new(18, 0, 10, 0)
-			billboard.StudsOffset = Vector3.new(0, 2, -6)
-			billboard.AlwaysOnTop = false
-			billboard.MaxDistance = 0
-			billboard.Parent = targetPart
-
-			local frame = Instance.new("Frame")
-			frame.BackgroundColor3 = Color3.new(0, 0, 0)
-			frame.BackgroundTransparency = 0
-			frame.BorderSizePixel = 0
-			frame.Size = UDim2.new(1, 0, 1, 0)
-			frame.Parent = billboard
+		local existingBackdrop = targetPart:FindFirstChild("RigScaryBackdrop")
+		if existingBackdrop then
+			existingBackdrop:Destroy()
 		end
-
-		if not rig:FindFirstChild("RigScaryBgPart") then
-			local bgPart = Instance.new("Part")
-			bgPart.Name = "RigScaryBgPart"
-			bgPart.Anchored = true
-			bgPart.CanCollide = false
-			bgPart.Transparency = 1
-			bgPart.Size = Vector3.new(60, 35, 1)
-			bgPart.CFrame = CFrame.lookAt(
-				targetPart.Position - targetPart.CFrame.LookVector * 8,
-				targetPart.Position
-			)
-			bgPart.Parent = rig
-
-			local surface = Instance.new("SurfaceGui")
-			surface.Name = "RigScaryBgSurface"
-			surface.Face = Enum.NormalId.Front
-			surface.AlwaysOnTop = false
-			surface.Parent = bgPart
-
-			local panel = Instance.new("Frame")
-			panel.BackgroundColor3 = Color3.new(0, 0, 0)
-			panel.BackgroundTransparency = 0
-			panel.BorderSizePixel = 0
-			panel.Size = UDim2.new(1, 0, 1, 0)
-			panel.Parent = surface
+		local existingSurface = targetPart:FindFirstChild("RigScarySurface")
+		if existingSurface then
+			existingSurface:Destroy()
 		end
-
-		if not targetPart:FindFirstChild("RigScarySurface") then
-			local surface = Instance.new("SurfaceGui")
-			surface.Name = "RigScarySurface"
-			surface.Face = Enum.NormalId.Front
-			surface.AlwaysOnTop = false
-			surface.Parent = targetPart
-
-			local panel = Instance.new("Frame")
-			panel.BackgroundColor3 = Color3.new(0, 0, 0)
-			panel.BackgroundTransparency = 0.2
-			panel.BorderSizePixel = 0
-			panel.Size = UDim2.new(1, 0, 1, 0)
-			panel.Parent = surface
+		local existingFog = targetPart:FindFirstChild("RigScaryFog")
+		if existingFog then
+			existingFog:Destroy()
 		end
-
-		if not targetPart:FindFirstChild("RigScaryFog") then
-			local fog = Instance.new("ParticleEmitter")
-			fog.Name = "RigScaryFog"
-			fog.Texture = "rbxassetid://258128463"
-			fog.Color = ColorSequence.new(Color3.fromRGB(10, 10, 10))
-			fog.LightEmission = 0
-			fog.Rate = 6
-			fog.Lifetime = NumberRange.new(2, 4)
-			fog.Speed = NumberRange.new(0.5, 1.5)
-			fog.SpreadAngle = Vector2.new(20, 20)
-			fog.RotSpeed = NumberRange.new(-30, 30)
-			fog.Size = NumberSequence.new({
-				NumberSequenceKeypoint.new(0, 1),
-				NumberSequenceKeypoint.new(1, 2),
-			})
-			fog.Transparency = NumberSequence.new({
-				NumberSequenceKeypoint.new(0, 0.6),
-				NumberSequenceKeypoint.new(1, 1),
-			})
-			fog.Parent = targetPart
+		local existingBgPart = rig:FindFirstChild("RigScaryBgPart")
+		if existingBgPart then
+			existingBgPart:Destroy()
 		end
 	end
 
@@ -313,7 +244,20 @@ function CutsceneSystem.new(ui, lighting, player, services)
 			return
 		end
 		if enabled then
-			local rigPart = resolveDispatchRigPart()
+			local function waitForRigPart(timeoutSeconds)
+				local startedAt = os.clock()
+				while os.clock() - startedAt < timeoutSeconds do
+					local rig = resolveDispatchRigModel()
+					local rigPart = rig and (rig:FindFirstChild("HumanoidRootPart") or rig.PrimaryPart or rig:FindFirstChild("Head"))
+					if rigPart and rigPart:IsA("BasePart") then
+						return rigPart
+					end
+					task.wait()
+				end
+				return nil
+			end
+
+			local rigPart = waitForRigPart(2)
 			if not rigPart then
 				return
 			end
@@ -321,9 +265,15 @@ function CutsceneSystem.new(ui, lighting, player, services)
 			originalCameraSubject = Camera.CameraSubject
 			originalCameraCFrame = Camera.CFrame
 			Camera.CameraType = Enum.CameraType.Scriptable
-			local offset = rigPart.CFrame.LookVector * 2
-			local position = rigPart.Position + offset
-			Camera.CFrame = CFrame.lookAt(position, rigPart.Position)
+			local rig = rigPart.Parent
+			local head = rig and rig:FindFirstChild("Head")
+			local anchor = (head and head:IsA("BasePart")) and head or (rig and rig.PrimaryPart) or rigPart
+			if not anchor or not anchor:IsA("BasePart") then
+				return
+			end
+			local offset = anchor.CFrame.LookVector * 2.2 + Vector3.new(0, 0.35, 0)
+			local position = anchor.Position + offset
+			Camera.CFrame = CFrame.lookAt(position, anchor.Position + Vector3.new(0, 0.15, 0))
 		else
 			if originalCameraType then
 				Camera.CameraType = originalCameraType

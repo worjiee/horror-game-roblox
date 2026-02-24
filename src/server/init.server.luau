@@ -9,6 +9,7 @@ local Remotes = require(script:WaitForChild("Remotes"))
 local TaskSystem = require(script:WaitForChild("TaskSystem"))
 local MonsterSystem = require(script:WaitForChild("MonsterSystem"))
 local EventSystem = require(script:WaitForChild("EventSystem"))
+local GeneratorSystem = require(script:WaitForChild("GeneratorSystem"))
 
 local remotes = Remotes.ensure({
 	"TaskUpdate",
@@ -19,11 +20,14 @@ local remotes = Remotes.ensure({
 	"CameraMenu",
 	"CameraViewed",
 	"Cutscene",
+	"GeneratorState",
+	"GeneratorBlocked",
 	"HorrorEvent",
 	"BasementClimax",
 	"Ending",
 })
 
+local generatorSystem = GeneratorSystem.new(Config, Workspace, remotes)
 local taskSystem = TaskSystem.new(Config, Workspace, remotes)
 local monsterSystem = MonsterSystem.new(Config, Workspace, Players, remotes.MonsterState)
 local eventSystem = EventSystem.new(Players, remotes, Config)
@@ -36,6 +40,7 @@ Players.PlayerAdded:Connect(function(player)
 	end)
 	task.wait(1)
 	taskSystem:broadcastTask()
+	generatorSystem:sendStateTo(player)
 	remotes.Cutscene:FireClient(player, "Opening")
 end)
 
@@ -57,7 +62,9 @@ end)
 
 RunService.Heartbeat:Connect(function(dt)
 	monsterSystem:update(dt)
+	generatorSystem:update(dt)
 end)
 
+generatorSystem:initialize()
 taskSystem:initialize()
 eventSystem:start()

@@ -146,10 +146,23 @@ function Ui.create(player, config)
 	statusLabel.ZIndex = 2
 	statusLabel.Parent = screenGui
 
+	local generatorLabel = Instance.new("TextLabel")
+	generatorLabel.Name = "GeneratorLabel"
+	generatorLabel.Size = UDim2.new(0, 220, 0, 30)
+	generatorLabel.Position = UDim2.new(0, 16, 0, 94)
+	generatorLabel.BackgroundTransparency = 0.4
+	generatorLabel.BackgroundColor3 = Color3.new(0, 0, 0)
+	generatorLabel.TextColor3 = Color3.new(1, 1, 1)
+	generatorLabel.Font = Enum.Font.Gotham
+	generatorLabel.TextSize = 16
+	generatorLabel.Text = "Generator: --%"
+	generatorLabel.ZIndex = 2
+	generatorLabel.Parent = screenGui
+
 	local cameraChecklistLabel = Instance.new("TextLabel")
 	cameraChecklistLabel.Name = "CameraChecklist"
 	cameraChecklistLabel.Size = UDim2.new(0, 240, 0, 70)
-	cameraChecklistLabel.Position = UDim2.new(0, 16, 0, 94)
+	cameraChecklistLabel.Position = UDim2.new(0, 16, 0, 128)
 	cameraChecklistLabel.BackgroundTransparency = 0.4
 	cameraChecklistLabel.BackgroundColor3 = Color3.new(0, 0, 0)
 	cameraChecklistLabel.TextColor3 = Color3.new(1, 1, 1)
@@ -174,6 +187,7 @@ function Ui.create(player, config)
 		taskLabel = taskLabel,
 		batteryLabel = batteryLabel,
 		statusLabel = statusLabel,
+		generatorLabel = generatorLabel,
 		cameraChecklistLabel = cameraChecklistLabel,
 	}
 
@@ -187,6 +201,15 @@ function Ui.create(player, config)
 
 	function ui:setStatus(text)
 		self.statusLabel.Text = text
+	end
+
+	function ui:setGeneratorFuel(fuel, maxFuel, working)
+		local percent = 0
+		if maxFuel and maxFuel > 0 then
+			percent = math.floor((fuel / maxFuel) * 100 + 0.5)
+		end
+		local state = working and "" or " (offline)"
+		self.generatorLabel.Text = string.format("Generator: %d%%%s", percent, state)
 	end
 
 	function ui:setCameraChecklist(text)

@@ -37,6 +37,8 @@ local monsterStateRemote = remotes:WaitForChild("MonsterState")
 local cameraMenuRemote = remotes:WaitForChild("CameraMenu")
 local cameraViewedRemote = remotes:WaitForChild("CameraViewed")
 local cutsceneRemote = remotes:WaitForChild("Cutscene")
+local generatorStateRemote = remotes:WaitForChild("GeneratorState")
+local generatorBlockedRemote = remotes:WaitForChild("GeneratorBlocked")
 local horrorEventRemote = remotes:WaitForChild("HorrorEvent")
 local basementClimaxRemote = remotes:WaitForChild("BasementClimax")
 local endingRemote = remotes:WaitForChild("Ending")
@@ -69,7 +71,7 @@ local cutscenes = CutsceneSystem.new(ui, Lighting, player, {
 	Camera = camera,
 })
 
-local cutscenesEnabled = false
+local cutscenesEnabled = true
 
 local events = EventSystem.new(ui, Lighting, SoundService, Config, cameraSystem)
 
@@ -78,6 +80,9 @@ local lastLookReport = 0
 local isHidden = false
 local monsterPosition = Vector3.new()
 local monsterActive = false
+local generatorFuel = 0
+local generatorMaxFuel = 100
+local generatorWorking = false
 
 local function toggleHide()
 	isHidden = not isHidden
@@ -102,6 +107,22 @@ end)
 
 cameraMenuRemote.OnClientEvent:Connect(function()
 	cameraSystem:onMenuRemote()
+end)
+
+generatorStateRemote.OnClientEvent:Connect(function(fuel, maxFuel, working)
+	generatorFuel = fuel or 0
+	generatorMaxFuel = maxFuel or generatorMaxFuel
+	generatorWorking = working == true
+	ui:setGeneratorFuel(generatorFuel, generatorMaxFuel, generatorWorking)
+end)
+
+generatorBlockedRemote.OnClientEvent:Connect(function(message)
+	ui:setStatus(message or "Generator offline - refuel with Gas Can")
+	task.delay(2.5, function()
+		if ui.statusLabel.Text == (message or "Generator offline - refuel with Gas Can") then
+			ui:setStatus("")
+		end
+	end)
 end)
 
 cutsceneRemote.OnClientEvent:Connect(function(name)
@@ -144,6 +165,20 @@ UserInputService.InputBegan:Connect(function(input, processed)
 		flashlight:toggle()
 	elseif input.KeyCode == Enum.KeyCode.H then
 		toggleHide()
+	end
+end)
+
+ProximityPromptService.PromptShown:Connect(function(prompt)
+	local parent = prompt and prompt.Parent
+	if parent and parent.Name == "Generator" then
+		ui:setStatus(string.format("Generator fuel: %d%%", math.floor((generatorFuel / math.max(generatorMaxFuel, 1)) * 100 + 0.5)))
+	end
+end)
+
+ProximityPromptService.PromptHidden:Connect(function(prompt)
+	local parent = prompt and prompt.Parent
+	if parent and parent.Name == "Generator" then
+		ui:setStatus("")
 	end
 end)
 

@@ -14,6 +14,20 @@ function TaskSystem.new(config, workspace, remotes)
 		reset_generators = { partName = "BackupGenerator", actionText = "Reset Generator" },
 	}
 
+	local function playPartSound(part, soundId)
+		if not part or not soundId or soundId == "" then
+			return
+		end
+		local sound = Instance.new("Sound")
+		sound.SoundId = string.find(soundId, "rbxassetid://", 1, true) and soundId or ("rbxassetid://" .. soundId)
+		sound.Volume = 0.6
+		sound.Parent = part
+		sound:Play()
+		sound.Ended:Connect(function()
+			sound:Destroy()
+		end)
+	end
+
 	local function getCurrentTask()
 		return tasks[currentTaskIndex]
 	end
@@ -45,7 +59,7 @@ function TaskSystem.new(config, workspace, remotes)
 	end
 
 	local function getFacilityPart(partName)
-		local facility = workspace:FindFirstChild("Facility")
+		local facility = workspace:FindFirstChild("Game Map")
 		if not facility then
 			return nil
 		end
@@ -127,6 +141,15 @@ function TaskSystem.new(config, workspace, remotes)
 				end
 				return
 			end
+			if taskId == "restore_power" then
+				local generator = getFacilityPart("Generator")
+				local working = generator and generator:GetAttribute("GeneratorWorking") == true
+				if not working then
+					remotes.GeneratorBlocked:FireClient(player, "Generator needs fuel")
+					return
+				end
+				playPartSound(part, "187544064")
+			end
 			self:completeTask(taskId)
 		end)
 	end
@@ -136,6 +159,15 @@ function TaskSystem.new(config, workspace, remotes)
 		if not terminal then
 			warn("Missing CameraTerminal for camera prompt")
 			return
+		end
+
+		local function isGeneratorWorking()
+			local generator = getFacilityPart("Generator")
+			if not generator then
+				return false
+			end
+			local working = generator:GetAttribute("GeneratorWorking")
+			return working == true
 		end
 
 		local prompt = terminal:FindFirstChild("CameraUsePrompt")
@@ -158,6 +190,10 @@ function TaskSystem.new(config, workspace, remotes)
 				return
 			end
 			cameraPromptDebounce[player] = now
+			if not isGeneratorWorking() then
+				remotes.GeneratorBlocked:FireClient(player, "Generator offline - refuel with Gas Can")
+				return
+			end
 			remotes.CameraMenu:FireClient(player)
 			local currentTask = getCurrentTask()
 			if currentTask and currentTask.id == "check_cameras" and hasViewedAllCameras(player) then
@@ -173,9 +209,9 @@ function TaskSystem.new(config, workspace, remotes)
 	function self:initialize()
 		self:broadcastTask()
 		task.spawn(function()
-			local facility = workspace:WaitForChild("Facility", 30)
+			local facility = workspace:WaitForChild("Game Map", 30)
 			if not facility then
-				warn("Facility not found; task prompts not initialized")
+				warn("Game Map not found; task prompts not initialized")
 				return
 			end
 

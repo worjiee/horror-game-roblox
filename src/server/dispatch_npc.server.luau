@@ -3,6 +3,7 @@ local TweenService = game:GetService("TweenService")
 local npc = script.Parent
 local head = npc:FindFirstChild("Head")
 local torso = npc:FindFirstChild("Torso")
+local humanoid = npc:FindFirstChildOfClass("Humanoid")
 
 local function tweenPart(part, goal, time)
 	if not part then
@@ -19,6 +20,12 @@ end
 
 if torso then
 	tweenPart(torso, { CFrame = torso.CFrame * CFrame.Angles(math.rad(2), 0, 0) }, 3)
+end
+
+if humanoid then
+	humanoid.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None
+	humanoid.NameDisplayDistance = 0
+	humanoid.DisplayName = ""
 end
 
 local monitor = npc.Parent:FindFirstChild("Monitor")
