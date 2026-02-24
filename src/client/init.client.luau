@@ -6,12 +6,15 @@ local ContextActionService = game:GetService("ContextActionService")
 local ProximityPromptService = game:GetService("ProximityPromptService")
 local Workspace = game:GetService("Workspace")
 local Lighting = game:GetService("Lighting")
+local SoundService = game:GetService("SoundService")
 
 local Ui = require(script:WaitForChild("Ui"))
 local Flashlight = require(script:WaitForChild("Flashlight"))
 local AudioSystem = require(script:WaitForChild("AudioSystem"))
 local LightingFlicker = require(script:WaitForChild("LightingFlicker"))
 local CameraSystem = require(script:WaitForChild("CameraSystem"))
+local CutsceneSystem = require(script:WaitForChild("CutsceneSystem"))
+local EventSystem = require(script:WaitForChild("EventSystem"))
 
 local player = Players.LocalPlayer
 local camera = Workspace.CurrentCamera
@@ -24,6 +27,7 @@ local flicker = LightingFlicker.new(Config, Lighting)
 
 ui.screenGui.Enabled = true
 ProximityPromptService.Enabled = true
+UserInputService.MouseIconEnabled = false
 
 local remotes = ReplicatedStorage:WaitForChild("Remotes")
 local taskUpdateRemote = remotes:WaitForChild("TaskUpdate")
@@ -31,6 +35,11 @@ local hideRequestRemote = remotes:WaitForChild("HideRequest")
 local lookReportRemote = remotes:WaitForChild("LookReport")
 local monsterStateRemote = remotes:WaitForChild("MonsterState")
 local cameraMenuRemote = remotes:WaitForChild("CameraMenu")
+local cameraViewedRemote = remotes:WaitForChild("CameraViewed")
+local cutsceneRemote = remotes:WaitForChild("Cutscene")
+local horrorEventRemote = remotes:WaitForChild("HorrorEvent")
+local basementClimaxRemote = remotes:WaitForChild("BasementClimax")
+local endingRemote = remotes:WaitForChild("Ending")
 
 local cameraSystem = CameraSystem.new({
 	player = player,
@@ -42,12 +51,27 @@ local cameraSystem = CameraSystem.new({
 		ContextActionService = ContextActionService,
 		ProximityPromptService = ProximityPromptService,
 		Workspace = Workspace,
+		SoundService = SoundService,
 	},
+	onCameraViewed = function(cameraName)
+		cameraViewedRemote:FireServer(cameraName)
+	end,
 	statusFallback = function()
 		return flashlight:isOn() and "Flashlight on" or ""
 	end,
 })
 cameraSystem:initialize()
+
+local cutscenes = CutsceneSystem.new(ui, Lighting, player, {
+	ContextActionService = ContextActionService,
+	SoundService = SoundService,
+	Workspace = Workspace,
+	Camera = camera,
+})
+
+local cutscenesEnabled = false
+
+local events = EventSystem.new(ui, Lighting, SoundService, Config, cameraSystem)
 
 local currentTaskId = ""
 local lastLookReport = 0
@@ -68,6 +92,7 @@ end
 taskUpdateRemote.OnClientEvent:Connect(function(index, total, taskId, text)
 	currentTaskId = taskId
 	ui:setTask(string.format("Task %d/%d: %s", index, total, text))
+	cameraSystem:setChecklistEnabled(taskId == "check_cameras")
 end)
 
 monsterStateRemote.OnClientEvent:Connect(function(active, position)
@@ -77,6 +102,33 @@ end)
 
 cameraMenuRemote.OnClientEvent:Connect(function()
 	cameraSystem:onMenuRemote()
+end)
+
+cutsceneRemote.OnClientEvent:Connect(function(name)
+	if not cutscenesEnabled then
+		return
+	end
+	if name == "Opening" then
+		cutscenes:playOpening()
+	end
+end)
+
+basementClimaxRemote.OnClientEvent:Connect(function()
+	if not cutscenesEnabled then
+		return
+	end
+	cutscenes:playBasementClimax()
+end)
+
+endingRemote.OnClientEvent:Connect(function()
+	if not cutscenesEnabled then
+		return
+	end
+	cutscenes:playEnding()
+end)
+
+horrorEventRemote.OnClientEvent:Connect(function(eventType, duration)
+	events:trigger(eventType, duration)
 end)
 
 UserInputService.InputBegan:Connect(function(input, processed)
@@ -96,6 +148,14 @@ UserInputService.InputBegan:Connect(function(input, processed)
 end)
 
 RunService.RenderStepped:Connect(function(dt)
+	if not cutscenes:isActive() then
+		ui.overlay.Visible = false
+		ui.overlay.BackgroundTransparency = 1
+	end
+	if not cameraSystem:isMenuOpen() then
+		UserInputService.MouseIconEnabled = false
+	end
+
 	cameraSystem:update()
 	flashlight:update(dt)
 	audio:update(monsterActive, monsterPosition, player)

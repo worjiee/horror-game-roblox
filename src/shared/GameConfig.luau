@@ -43,6 +43,24 @@ GameConfig.HeartbeatMaxSpeed = 1.4
 GameConfig.VignetteImageId = ""
 GameConfig.VignetteMaxAlpha = 0.6
 
+GameConfig.CameraViewMusicId = ""
+
+GameConfig.CameraNames = {
+	"CameraA",
+	"CameraB",
+	"CameraC",
+	"CameraD",
+	"CameraE",	
+}
+
+GameConfig.EventIntervalMin = 60
+GameConfig.EventIntervalMax = 120
+GameConfig.EventSounds = {
+	Footsteps = "",
+	Radio = "",
+	Shadow = "",
+}
+
 GameConfig.MonsterMoveInterval = 6
 GameConfig.MonsterActivationChance = 0.05
 GameConfig.MonsterDeactivationChance = 0.03

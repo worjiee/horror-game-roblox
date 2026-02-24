@@ -10,6 +10,8 @@ function CameraSystem.new(deps)
 	local ContextActionService = deps.services.ContextActionService
 	local ProximityPromptService = deps.services.ProximityPromptService
 	local Workspace = deps.services.Workspace
+	local SoundService = deps.services.SoundService
+	local onCameraViewed = deps.onCameraViewed
 	local statusFallback = deps.statusFallback
 
 	local cameraParts = {}
@@ -30,15 +32,69 @@ function CameraSystem.new(deps)
 	local cameraPitchLimit = math.rad(40)
 	local cameraYawLimit = math.rad(60)
 	local cameraSensitivity = 0.0025
+	local checklistEnabled = false
+	local viewedCameras = {}
+
+	local function getCameraNames()
+		return config.CameraNames or { "CameraA", "CameraB" }
+	end
+
+	local function updateChecklist()
+		if not ui or not checklistEnabled then
+			if ui then
+				ui:setCameraChecklist("")
+			end
+			return
+		end
+		local lines = { "Cameras checked:" }
+		for _, name in ipairs(getCameraNames()) do
+			local checked = viewedCameras[name]
+			local mark = checked and "x" or " "
+			table.insert(lines, string.format("[%s] %s", mark, name))
+		end
+		ui:setCameraChecklist(table.concat(lines, "\n"))
+	end
+
+	local function reportCameraViewed(name)
+		if onCameraViewed and name and name ~= "" then
+			onCameraViewed(name)
+		end
+		if name and name ~= "" then
+			viewedCameras[name] = true
+			updateChecklist()
+		end
+	end
+
+	local cameraSelectSound = Instance.new("Sound")
+	cameraSelectSound.Name = "CameraSelectSound"
+	cameraSelectSound.SoundId = "rbxassetid://1673280232"
+	cameraSelectSound.Volume = 0.6
+	cameraSelectSound.Looped = false
+	cameraSelectSound.Parent = SoundService
+
+	local cameraViewMusic = Instance.new("Sound")
+	cameraViewMusic.Name = "CameraViewMusic"
+	cameraViewMusic.SoundId = config.CameraViewMusicId or ""
+	cameraViewMusic.Volume = 0.35
+	cameraViewMusic.Looped = true
+	cameraViewMusic.Parent = SoundService
+
+	local cameraExitSound = Instance.new("Sound")
+	cameraExitSound.Name = "CameraExitSound"
+	cameraExitSound.SoundId = "rbxassetid://1673280232"
+	cameraExitSound.Volume = 0.45
+	cameraExitSound.Parent = SoundService
 
 	local function applyMouseForMenu()
 		UserInputService.MouseBehavior = Enum.MouseBehavior.Default
 		UserInputService.MouseIconEnabled = true
+		ui:hideCursorDot()
 	end
 
 	local function applyMouseForLook()
 		UserInputService.MouseBehavior = Enum.MouseBehavior.LockCenter
 		UserInputService.MouseIconEnabled = false
+		ui:showCursorDot()
 	end
 
 	local function restoreMovement()
@@ -116,7 +172,7 @@ function CameraSystem.new(deps)
 			return
 		end
 
-		local candidateNames = { "CameraA", "CameraB" }
+		local candidateNames = getCameraNames()
 		for index, name in ipairs(candidateNames) do
 			local part = facility:FindFirstChild(name)
 			if part then
@@ -146,6 +202,7 @@ function CameraSystem.new(deps)
 		ui:showCameraMenu()
 		cameraMenuOpen = true
 		ui:setStatus("Select a camera")
+		updateChecklist()
 	end
 
 	local function closeCameraMenu()
@@ -155,14 +212,12 @@ function CameraSystem.new(deps)
 			applyMouseForLook()
 			setMovementBlocked(true)
 		else
-			if originalMouseBehavior then
-				UserInputService.MouseBehavior = originalMouseBehavior
-			end
-			if originalMouseIcon ~= nil then
-				UserInputService.MouseIconEnabled = originalMouseIcon
-			end
+			UserInputService.MouseBehavior = Enum.MouseBehavior.Default
+			UserInputService.MouseIconEnabled = false
+			ui:showCursorDot()
 			setMovementBlocked(false)
 		end
+		updateChecklist()
 
 		if statusFallback then
 			ui:setStatus(statusFallback())
@@ -194,10 +249,17 @@ function CameraSystem.new(deps)
 
 		camera.CameraType = Enum.CameraType.Scriptable
 		updateSecurityCamera()
+		if cameraViewMusic.SoundId ~= "" and not cameraViewMusic.IsPlaying then
+			cameraViewMusic:Play()
+		end
 		ui:setStatus("Security view (Tab: menu, Q: exit)")
 		if openMenu ~= false then
 			openCameraMenu()
+		else
+			cameraMenuOpen = false
+			ui:hideCameraMenu()
 		end
+		updateChecklist()
 	end
 
 	local function exitSecurityView()
@@ -216,7 +278,10 @@ function CameraSystem.new(deps)
 
 		setMovementBlocked(false)
 		ProximityPromptService.Enabled = true
+		cameraViewMusic:Stop()
 		closeCameraMenu()
+		ui:hideCursorDot()
+		UserInputService.MouseIconEnabled = false
 	end
 
 	local function cycleSecurityCamera()
@@ -231,6 +296,10 @@ function CameraSystem.new(deps)
 		cameraYaw = 0
 		cameraPitch = 0
 		updateSecurityCamera()
+		local target = cameraParts[cameraIndex]
+		if target then
+			reportCameraViewed(target.Name)
+		end
 	end
 
 	local function selectCameraByName(name)
@@ -239,7 +308,12 @@ function CameraSystem.new(deps)
 			return
 		end
 
+		cameraSelectSound:Stop()
+		cameraSelectSound.TimePosition = 0
+		cameraSelectSound:Play()
+
 		cameraIndex = index
+		reportCameraViewed(name)
 		if not inSecurityView then
 			enterSecurityView(false)
 		else
@@ -281,11 +355,20 @@ function CameraSystem.new(deps)
 	end
 
 	function self:update()
-		if inSecurityView and not cameraMenuOpen then
+		if cameraMenuOpen then
+			applyMouseForMenu()
+			return
+		end
+
+		if inSecurityView then
+			applyMouseForLook()
 			local delta = UserInputService:GetMouseDelta()
 			cameraYaw = math.clamp(cameraYaw - delta.X * cameraSensitivity, -cameraYawLimit, cameraYawLimit)
 			cameraPitch = math.clamp(cameraPitch - delta.Y * cameraSensitivity, -cameraPitchLimit, cameraPitchLimit)
 			updateSecurityCamera()
+		else
+			UserInputService.MouseIconEnabled = false
+			ui:showCursorDot()
 		end
 	end
 
@@ -297,30 +380,35 @@ function CameraSystem.new(deps)
 		end
 	end
 
+	function self:isMenuOpen()
+		return cameraMenuOpen
+	end
+
+	function self:isInSecurityView()
+		return inSecurityView
+	end
+
 	function self:initialize()
 		refreshCameraParts()
+		UserInputService.MouseIconEnabled = false
+		ui:showCursorDot()
+		updateChecklist()
 
-		ui.cameraAButton.MouseButton1Click:Connect(function()
-			selectCameraByName("CameraA")
-		end)
-		ui.cameraAButton.Activated:Connect(function()
-			selectCameraByName("CameraA")
-		end)
-
-		ui.cameraBButton.MouseButton1Click:Connect(function()
-			selectCameraByName("CameraB")
-		end)
-		ui.cameraBButton.Activated:Connect(function()
-			selectCameraByName("CameraB")
+		ui:buildCameraButtons(getCameraNames(), function(name)
+			selectCameraByName(name)
 		end)
 
 		ui.cameraExitButton.MouseButton1Click:Connect(function()
+			cameraExitSound:Stop()
+			cameraExitSound:Play()
 			closeCameraMenu()
 			if inSecurityView then
 				exitSecurityView()
 			end
 		end)
 		ui.cameraExitButton.Activated:Connect(function()
+			cameraExitSound:Stop()
+			cameraExitSound:Play()
 			closeCameraMenu()
 			if inSecurityView then
 				exitSecurityView()
@@ -330,6 +418,14 @@ function CameraSystem.new(deps)
 		player.CharacterAdded:Connect(function()
 			exitSecurityView()
 		end)
+	end
+
+	function self:setChecklistEnabled(enabled)
+		checklistEnabled = enabled == true
+		if not checklistEnabled then
+			viewedCameras = {}
+		end
+		updateChecklist()
 	end
 
 	return self

@@ -5,6 +5,8 @@ function TaskSystem.new(config, workspace, remotes)
 	local tasks = config.Tasks
 	local currentTaskIndex = 1
 	local cameraPromptDebounce = {}
+	local requiredCameraNames = config.CameraNames or { "CameraA", "CameraB" }
+	local cameraViewsByPlayer = {}
 
 	local taskPromptBindings = {
 		restore_power = { partName = "Generator", actionText = "Restore Power" },
@@ -14,6 +16,32 @@ function TaskSystem.new(config, workspace, remotes)
 
 	local function getCurrentTask()
 		return tasks[currentTaskIndex]
+	end
+
+	local function clearCameraViews()
+		cameraViewsByPlayer = {}
+	end
+
+	local function getCameraViewState(player)
+		local state = cameraViewsByPlayer[player]
+		if not state then
+			state = {}
+			cameraViewsByPlayer[player] = state
+		end
+		return state
+	end
+
+	local function hasViewedAllCameras(player)
+		local state = cameraViewsByPlayer[player]
+		if not state then
+			return false
+		end
+		for _, name in ipairs(requiredCameraNames) do
+			if not state[name] then
+				return false
+			end
+		end
+		return true
 	end
 
 	local function getFacilityPart(partName)
@@ -40,8 +68,29 @@ function TaskSystem.new(config, workspace, remotes)
 		end
 
 		currentTaskIndex += 1
+		if getCurrentTask() and getCurrentTask().id == "check_cameras" then
+			clearCameraViews()
+		end
 		self:broadcastTask()
+		if taskId == "reset_generators" then
+			remotes.BasementClimax:FireAllClients()
+			task.delay(6, function()
+				remotes.Ending:FireAllClients()
+			end)
+		end
 		return true
+	end
+
+	function self:recordCameraViewed(player, cameraName)
+		if not cameraName or cameraName == "" then
+			return
+		end
+		local state = getCameraViewState(player)
+		state[cameraName] = true
+		local currentTask = getCurrentTask()
+		if currentTask and currentTask.id == "check_cameras" and hasViewedAllCameras(player) then
+			self:completeTask("check_cameras")
+		end
 	end
 
 	function self:ensurePromptForTask(taskId)
@@ -73,6 +122,10 @@ function TaskSystem.new(config, workspace, remotes)
 		prompt.Triggered:Connect(function(player)
 			if taskId == "check_cameras" then
 				remotes.CameraMenu:FireClient(player)
+				if hasViewedAllCameras(player) then
+					self:completeTask(taskId)
+				end
+				return
 			end
 			self:completeTask(taskId)
 		end)
@@ -106,6 +159,10 @@ function TaskSystem.new(config, workspace, remotes)
 			end
 			cameraPromptDebounce[player] = now
 			remotes.CameraMenu:FireClient(player)
+			local currentTask = getCurrentTask()
+			if currentTask and currentTask.id == "check_cameras" and hasViewedAllCameras(player) then
+				self:completeTask("check_cameras")
+			end
 		end)
 	end
 

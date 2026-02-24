@@ -215,6 +215,147 @@
               1
             ]
           }
+        },
+        "DispatchStation": {
+          "$className": "Model",
+          "Desk": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "Color": [
+                0.12,
+                0.1,
+                0.1
+              ],
+              "Position": [
+                18,
+                2,
+                12
+              ],
+              "Size": [
+                6,
+                2,
+                4
+              ]
+            }
+          },
+          "Monitor": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "Color": [
+                0.1,
+                0.1,
+                0.15
+              ],
+              "Position": [
+                18,
+                3.6,
+                12.8
+              ],
+              "Size": [
+                2,
+                1.2,
+                0.4
+              ]
+            }
+          },
+          "Chair": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "Color": [
+                0.08,
+                0.08,
+                0.1
+              ],
+              "Position": [
+                18,
+                1.2,
+                10
+              ],
+              "Size": [
+                2,
+                2,
+                2
+              ]
+            }
+          },
+          "DispatchNPC": {
+            "$className": "Model",
+            "HumanoidRootPart": {
+              "$className": "Part",
+              "$properties": {
+                "Anchored": true,
+                "Color": [
+                  0.2,
+                  0.2,
+                  0.2
+                ],
+                "Position": [
+                  18,
+                  3.5,
+                  10
+                ],
+                "Size": [
+                  2,
+                  2,
+                  1
+                ]
+              }
+            },
+            "Head": {
+              "$className": "Part",
+              "$properties": {
+                "Anchored": true,
+                "Color": [
+                  0.9,
+                  0.8,
+                  0.7
+                ],
+                "Position": [
+                  18,
+                  5.5,
+                  10
+                ],
+                "Size": [
+                  2,
+                  1,
+                  1
+                ]
+              }
+            },
+            "Torso": {
+              "$className": "Part",
+              "$properties": {
+                "Anchored": true,
+                "Color": [
+                  0.25,
+                  0.25,
+                  0.25
+                ],
+                "Position": [
+                  18,
+                  4.2,
+                  10
+                ],
+                "Size": [
+                  2,
+                  2,
+                  1
+                ]
+              }
+            },
+            "Humanoid": {
+              "$className": "Humanoid",
+              "$properties": {
+                "DisplayName": "Dispatch"
+              }
+            },
+            "DispatchNpcScript": {
+              "$path": "src/server/dispatch_npc.server.luau"
+            }
+          }
         }
       }
     },

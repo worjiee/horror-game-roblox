@@ -7,18 +7,30 @@ function Ui.create(player, config)
 	screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 	screenGui.Parent = player:WaitForChild("PlayerGui")
 
-	local debugLabel = Instance.new("TextLabel")
-	debugLabel.Name = "UiDebug"
-	debugLabel.Size = UDim2.new(0, 200, 0, 20)
-	debugLabel.Position = UDim2.new(0, 16, 1, -28)
-	debugLabel.BackgroundTransparency = 0.4
-	debugLabel.BackgroundColor3 = Color3.new(0, 0, 0)
-	debugLabel.TextColor3 = Color3.new(1, 1, 1)
-	debugLabel.Font = Enum.Font.Gotham
-	debugLabel.TextSize = 12
-	debugLabel.Text = "UI loaded"
-	debugLabel.ZIndex = 2
-	debugLabel.Parent = screenGui
+	local overlay = Instance.new("Frame")
+	overlay.Name = "Overlay"
+	overlay.Size = UDim2.new(1, 0, 1, 0)
+	overlay.Position = UDim2.new(0, 0, 0, 0)
+	overlay.BackgroundColor3 = Color3.new(0, 0, 0)
+	overlay.BackgroundTransparency = 1
+	overlay.ZIndex = 3
+	overlay.Visible = false
+	overlay.Parent = screenGui
+
+	local dispatchLabel = Instance.new("TextLabel")
+	dispatchLabel.Name = "Dispatch"
+	dispatchLabel.Size = UDim2.new(0, 520, 0, 60)
+	dispatchLabel.Position = UDim2.new(0.5, -260, 0.8, -30)
+	dispatchLabel.BackgroundTransparency = 0.4
+	dispatchLabel.BackgroundColor3 = Color3.new(0, 0, 0)
+	dispatchLabel.TextColor3 = Color3.new(1, 1, 1)
+	dispatchLabel.TextXAlignment = Enum.TextXAlignment.Left
+	dispatchLabel.Font = Enum.Font.Gotham
+	dispatchLabel.TextSize = 18
+	dispatchLabel.Text = ""
+	dispatchLabel.ZIndex = 4
+	dispatchLabel.Visible = false
+	dispatchLabel.Parent = screenGui
 
 	local cameraMenu = Instance.new("Frame")
 	cameraMenu.Name = "CameraMenu"
@@ -45,31 +57,18 @@ function Ui.create(player, config)
 	cameraMenuTitle.ZIndex = 6
 	cameraMenuTitle.Parent = cameraMenu
 
-	local cameraAButton = Instance.new("TextButton")
-	cameraAButton.Name = "CameraAButton"
-	cameraAButton.Size = UDim2.new(1, -20, 0, 36)
-	cameraAButton.Position = UDim2.new(0, 10, 0, 52)
-	cameraAButton.BackgroundColor3 = Color3.new(0.12, 0.12, 0.12)
-	cameraAButton.TextColor3 = Color3.new(1, 1, 1)
-	cameraAButton.Font = Enum.Font.Gotham
-	cameraAButton.TextSize = 16
-	cameraAButton.Text = "Camera A"
-	cameraAButton.ZIndex = 6
-	cameraAButton.AutoButtonColor = true
-	cameraAButton.Parent = cameraMenu
+	local cameraButtonContainer = Instance.new("Frame")
+	cameraButtonContainer.Name = "CameraButtonContainer"
+	cameraButtonContainer.Size = UDim2.new(1, -20, 1, -92)
+	cameraButtonContainer.Position = UDim2.new(0, 10, 0, 52)
+	cameraButtonContainer.BackgroundTransparency = 1
+	cameraButtonContainer.ZIndex = 6
+	cameraButtonContainer.Parent = cameraMenu
 
-	local cameraBButton = Instance.new("TextButton")
-	cameraBButton.Name = "CameraBButton"
-	cameraBButton.Size = UDim2.new(1, -20, 0, 36)
-	cameraBButton.Position = UDim2.new(0, 10, 0, 94)
-	cameraBButton.BackgroundColor3 = Color3.new(0.12, 0.12, 0.12)
-	cameraBButton.TextColor3 = Color3.new(1, 1, 1)
-	cameraBButton.Font = Enum.Font.Gotham
-	cameraBButton.TextSize = 16
-	cameraBButton.Text = "Camera B"
-	cameraBButton.ZIndex = 6
-	cameraBButton.AutoButtonColor = true
-	cameraBButton.Parent = cameraMenu
+	local cameraButtonLayout = Instance.new("UIListLayout")
+	cameraButtonLayout.Padding = UDim.new(0, 6)
+	cameraButtonLayout.SortOrder = Enum.SortOrder.LayoutOrder
+	cameraButtonLayout.Parent = cameraButtonContainer
 
 	local cameraExitButton = Instance.new("TextButton")
 	cameraExitButton.Name = "ExitButton"
@@ -83,6 +82,16 @@ function Ui.create(player, config)
 	cameraExitButton.ZIndex = 6
 	cameraExitButton.AutoButtonColor = true
 	cameraExitButton.Parent = cameraMenu
+
+	local cursorDot = Instance.new("Frame")
+	cursorDot.Name = "CursorDot"
+	cursorDot.Size = UDim2.new(0, 6, 0, 6)
+	cursorDot.Position = UDim2.new(0.5, -3, 0.5, -3)
+	cursorDot.BackgroundColor3 = Color3.new(1, 1, 1)
+	cursorDot.BorderSizePixel = 0
+	cursorDot.Visible = false
+	cursorDot.ZIndex = 4
+	cursorDot.Parent = screenGui
 
 	local vignette = Instance.new("ImageLabel")
 	vignette.Name = "Vignette"
@@ -137,17 +146,35 @@ function Ui.create(player, config)
 	statusLabel.ZIndex = 2
 	statusLabel.Parent = screenGui
 
+	local cameraChecklistLabel = Instance.new("TextLabel")
+	cameraChecklistLabel.Name = "CameraChecklist"
+	cameraChecklistLabel.Size = UDim2.new(0, 240, 0, 70)
+	cameraChecklistLabel.Position = UDim2.new(0, 16, 0, 94)
+	cameraChecklistLabel.BackgroundTransparency = 0.4
+	cameraChecklistLabel.BackgroundColor3 = Color3.new(0, 0, 0)
+	cameraChecklistLabel.TextColor3 = Color3.new(1, 1, 1)
+	cameraChecklistLabel.TextXAlignment = Enum.TextXAlignment.Left
+	cameraChecklistLabel.TextYAlignment = Enum.TextYAlignment.Top
+	cameraChecklistLabel.Font = Enum.Font.Gotham
+	cameraChecklistLabel.TextSize = 14
+	cameraChecklistLabel.Text = ""
+	cameraChecklistLabel.Visible = false
+	cameraChecklistLabel.ZIndex = 2
+	cameraChecklistLabel.Parent = screenGui
+
 	local ui = {
 		screenGui = screenGui,
-		debugLabel = debugLabel,
+		overlay = overlay,
+		dispatchLabel = dispatchLabel,
 		cameraMenu = cameraMenu,
-		cameraAButton = cameraAButton,
-		cameraBButton = cameraBButton,
+		cameraButtonContainer = cameraButtonContainer,
 		cameraExitButton = cameraExitButton,
+		cursorDot = cursorDot,
 		vignette = vignette,
 		taskLabel = taskLabel,
 		batteryLabel = batteryLabel,
 		statusLabel = statusLabel,
+		cameraChecklistLabel = cameraChecklistLabel,
 	}
 
 	function ui:setTask(text)
@@ -160,6 +187,49 @@ function Ui.create(player, config)
 
 	function ui:setStatus(text)
 		self.statusLabel.Text = text
+	end
+
+	function ui:setCameraChecklist(text)
+		self.cameraChecklistLabel.Text = text or ""
+		self.cameraChecklistLabel.Visible = text ~= nil and text ~= ""
+	end
+
+	function ui:buildCameraButtons(cameraNames, onSelect)
+		for _, child in ipairs(self.cameraButtonContainer:GetChildren()) do
+			if child:IsA("TextButton") then
+				child:Destroy()
+			end
+		end
+
+		for index, name in ipairs(cameraNames) do
+			local button = Instance.new("TextButton")
+			button.Name = name .. "Button"
+			button.Size = UDim2.new(1, 0, 0, 32)
+			button.BackgroundColor3 = Color3.new(0.12, 0.12, 0.12)
+			button.TextColor3 = Color3.new(1, 1, 1)
+			button.Font = Enum.Font.Gotham
+			button.TextSize = 16
+			button.Text = name
+			button.ZIndex = 6
+			button.AutoButtonColor = true
+			button.LayoutOrder = index
+			button.Parent = self.cameraButtonContainer
+
+			button.MouseButton1Click:Connect(function()
+				onSelect(name)
+			end)
+			button.Activated:Connect(function()
+				onSelect(name)
+			end)
+		end
+
+		local count = #cameraNames
+		local buttonHeight = 32
+		local padding = 6
+		local totalButtonsHeight = count * buttonHeight + math.max(count - 1, 0) * padding
+		local baseHeight = 120
+		local menuHeight = math.max(180, baseHeight + totalButtonsHeight)
+		self.cameraMenu.Size = UDim2.new(0, 320, 0, menuHeight)
 	end
 
 	function ui:setVignetteAlpha(alpha)
@@ -175,6 +245,36 @@ function Ui.create(player, config)
 
 	function ui:hideCameraMenu()
 		self.cameraMenu.Visible = false
+	end
+
+	function ui:showOverlay(alpha)
+		self.overlay.Visible = true
+		self.overlay.BackgroundTransparency = math.clamp(alpha or 0, 0, 1)
+	end
+
+	function ui:hideOverlay()
+		self.overlay.Visible = false
+	end
+
+	function ui:showDispatch()
+		self.dispatchLabel.Visible = true
+	end
+
+	function ui:hideDispatch()
+		self.dispatchLabel.Visible = false
+		self.dispatchLabel.Text = ""
+	end
+
+	function ui:setDispatch(text)
+		self.dispatchLabel.Text = text
+	end
+
+	function ui:showCursorDot()
+		self.cursorDot.Visible = true
+	end
+
+	function ui:hideCursorDot()
+		self.cursorDot.Visible = false
 	end
 
 	function ui:isCameraMenuVisible()
